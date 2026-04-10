@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>sh.claude.ccnotify</string>
+    <key>CFBundleName</key>
+    <string>CCNotify</string>
+    <key>CFBundleDisplayName</key>
+    <string>CCNotify</string>
+    <key>CFBundleExecutable</key>
+    <string>CCNotify</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <!-- Run as background agent — no Dock icon, no menu bar -->
+    <key>LSUIElement</key>
+    <true/>
+    <!-- Use alert-style notifications (persistent, not banners that auto-dismiss) -->
+    <key>NSUserNotificationAlertStyle</key>
+    <string>alert</string>
+</dict>
+</plist>

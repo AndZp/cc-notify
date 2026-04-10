@@ -1,0 +1,28 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Compile on macOS
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile Swift sources
+        run: make build
+
+      - name: Verify binary exists
+        run: |
+          test -f .build/CCNotify.app/Contents/MacOS/CCNotify
+          echo "Binary built successfully"
+
+      - name: Check code signature
+        run: |
+          codesign --verify --deep .build/CCNotify.app
+          echo "Code signature valid"
