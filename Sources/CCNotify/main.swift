@@ -22,9 +22,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             return
         }
 
-        // Parse hook payload from temp file passed as argument
+        // Parse hook payload from temp file passed as argument.
+        // Hook command format: open -n CCNotify.app --args <Event> $TERM_PROGRAM <tmpfile>
+        // The temp file path is the first argument starting with "/" and must be in /tmp
+        // or the system temp directory (defense-in-depth against unexpected argument injection).
+        let tmpBase = NSTemporaryDirectory()
         let payload: HookPayload?
         if let filePath = args.dropFirst().first(where: { $0.hasPrefix("/") }),
+           (filePath.hasPrefix(tmpBase) || filePath.hasPrefix("/tmp/")),
            let data = try? Data(contentsOf: URL(fileURLWithPath: filePath)) {
             payload = try? JSONDecoder().decode(HookPayload.self, from: data)
             try? FileManager.default.removeItem(atPath: filePath)

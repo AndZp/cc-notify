@@ -93,7 +93,7 @@ cc-notify maps Claude Code hook events to contextual notification content:
 |---|---|---|---|
 | `Notification` | `permission_prompt` | `folder · Permission` | Tool or command Claude wants to run |
 | `Notification` | `idle_prompt` | `folder · Input Needed` | Claude's question |
-| `Notification` | `idle_prompt` | `folder · Question` | Claude's question |
+| `Notification` | `elicitation_dialog` | `folder · Question` | Claude's question |
 | `Notification` | `auth_success` | `folder · Authorized` | Permission granted |
 | `Stop` | — | `folder · Done` | "Finished in Xm Ys" |
 

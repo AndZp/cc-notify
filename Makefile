@@ -41,8 +41,9 @@ $(BINARY): $(SOURCES) Support/Info.plist Resources/icon.png
 # ── Install ────────────────────────────────────────────────────────────────────
 install: build
 	@echo "▶ Installing to $(INSTALL_DIR)..."
+	@cp -r "$(BUILD_DIR)" "$(INSTALL_DIR).new"
 	@rm -rf "$(INSTALL_DIR)"
-	@cp -r "$(BUILD_DIR)" "$(INSTALL_DIR)"
+	@mv "$(INSTALL_DIR).new" "$(INSTALL_DIR)"
 	@# Register with Launch Services so macOS knows it's a trusted notification sender
 	@/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
 	    -f "$(INSTALL_DIR)" 2>/dev/null || true

@@ -23,26 +23,26 @@ func buildContent(event: String, payload: HookPayload?) -> NotifContent {
     switch event {
 
     case "Notification":
-        let notifType = payload?.notification_type ?? ""
-        if ["permission_prompt", "idle_prompt", "elicitation_dialog", "auth_success"].contains(notifType) {
-            let (action, detail): (String, String) = {
-                switch notifType {
-                case "permission_prompt":
-                    return ("Permission", msg.isEmpty ? "Needs your approval" : msg)
-                case "idle_prompt":
-                    return ("Input Needed", msg.isEmpty ? "Claude has a question for you" : msg)
-                case "elicitation_dialog":
-                    return ("Question", msg.isEmpty ? "Claude needs your input" : msg)
-                default: // auth_success
-                    return ("Authorized", msg.isEmpty ? "Permission granted" : msg)
-                }
-            }()
-            return NotifContent(title: "\(folder) · \(action)", subtitle: sName, body: detail)
-        } else {
-            let t = payload?.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "Attention"
-            return NotifContent(title: "\(folder) · \(t)", subtitle: sName,
-                                body: msg.isEmpty ? "Claude needs your attention" : msg)
+        let action: String
+        let detail: String
+        switch payload?.notification_type {
+        case "permission_prompt":
+            action = "Permission"
+            detail = msg.isEmpty ? "Needs your approval" : msg
+        case "idle_prompt":
+            action = "Input Needed"
+            detail = msg.isEmpty ? "Claude has a question for you" : msg
+        case "elicitation_dialog":
+            action = "Question"
+            detail = msg.isEmpty ? "Claude needs your input" : msg
+        case "auth_success":
+            action = "Authorized"
+            detail = msg.isEmpty ? "Permission granted" : msg
+        default:
+            action = payload?.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "Attention"
+            detail = msg.isEmpty ? "Claude needs your attention" : msg
         }
+        return NotifContent(title: "\(folder) · \(action)", subtitle: sName, body: detail)
 
     case "Stop":
         var body = "Task finished"
@@ -62,7 +62,8 @@ func buildContent(event: String, payload: HookPayload?) -> NotifContent {
 /// Attaches a branded icon PNG from the app bundle as a notification image.
 /// Quits the app ~1 second after the notification is posted.
 func sendNotification(notif: NotifContent, targetBundle: String, event: String) {
-    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
+    let center = UNUserNotificationCenter.current()
+    center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
         guard granted else {
             DispatchQueue.main.async { NSApp.terminate(nil) }
             return
@@ -77,20 +78,24 @@ func sendNotification(notif: NotifContent, targetBundle: String, event: String) 
 
         // Attach branded icon — workaround for ad-hoc signed apps on macOS 26
         // which cannot display bundle icons in Notification Center.
+        // UNNotificationAttachment copies the file internally, so we clean up after delivery.
+        var iconTmpURL: URL?
         if let src = Bundle.main.url(forResource: "icon", withExtension: "png") {
             let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
-                .appendingPathComponent("ccnotify-icon-\(Int(Date().timeIntervalSince1970)).png")
+                .appendingPathComponent("ccnotify-icon-\(UUID().uuidString).png")
             if (try? FileManager.default.copyItem(at: src, to: tmp)) != nil,
                let att = try? UNNotificationAttachment(identifier: "icon", url: tmp, options: nil) {
                 content.attachments = [att]
+                iconTmpURL = tmp
             }
         }
 
         let req = UNNotificationRequest(
-            identifier: "ccnotify-\(event)-\(Int(Date().timeIntervalSince1970))",
+            identifier: "ccnotify-\(UUID().uuidString)",
             content: content, trigger: nil
         )
-        UNUserNotificationCenter.current().add(req) { _ in
+        center.add(req) { _ in
+            if let url = iconTmpURL { try? FileManager.default.removeItem(at: url) }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { NSApp.terminate(nil) }
         }
     }
