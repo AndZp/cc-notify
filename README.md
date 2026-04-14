@@ -167,7 +167,7 @@ Edit `Sources/CCNotify/TerminalResolver.swift` and add your terminal's `TERM_PRO
 "MyTerminal": "com.example.MyTerminal",
 ```
 
-PRs for additional terminals are welcome.
+PRs for additional terminals are welcome. Please connact me for any collaboration 
 
 ---
 
