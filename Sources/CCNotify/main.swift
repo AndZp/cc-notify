@@ -23,7 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         }
 
         // Parse hook payload from temp file passed as argument.
-        // Hook command format: open -n CCNotify.app --args <Event> $TERM_PROGRAM <tmpfile>
+        // Launched by Scripts/ccnotify-hook.sh as: open -n CCNotify.app --args <Event> <host> <tmpfile>
         // The temp file path is the first argument starting with "/" and must be in /tmp
         // or the system temp directory (defense-in-depth against unexpected argument injection).
         let tmpBase = NSTemporaryDirectory()
@@ -53,7 +53,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         }
 
         // Determine which terminal to focus on notification tap.
-        // TERM_PROGRAM is passed as the second argument by the hook command.
+        // The host (TERM_PROGRAM, or "Conductor") is passed as the second argument by the hook.
         let termProgram = args.count > 1 && !args[1].hasPrefix("/") ? args[1] : ""
         let targetBundle = resolveTerminalBundle(termProgram)
 
