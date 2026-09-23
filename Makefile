@@ -12,7 +12,7 @@ BINARY       := $(BUILD_DIR)/Contents/MacOS/$(APP_NAME)
 # ── Default target ─────────────────────────────────────────────────────────────
 .DEFAULT_GOAL := help
 
-.PHONY: help build install uninstall test clean
+.PHONY: help build install uninstall test test-scripts clean
 
 help:
 	@echo "cc-notify — Claude Code macOS notifications"
@@ -21,12 +21,13 @@ help:
 	@echo "  make uninstall  Remove app and hooks from Claude Code settings"
 	@echo "  make build      Compile only (no install)"
 	@echo "  make test       Send test notifications for each event type"
+	@echo "  make test-scripts  Run the hermetic hook and installer tests"
 	@echo "  make clean      Remove build artifacts"
 
 # ── Build ──────────────────────────────────────────────────────────────────────
 build: $(BINARY)
 
-$(BINARY): $(SOURCES) Support/Info.plist Resources/icon.png
+$(BINARY): $(SOURCES) Support/Info.plist Resources/icon.png Scripts/ccnotify-hook.sh
 	@echo "▶ Compiling $(APP_NAME)..."
 	@mkdir -p $(BUILD_DIR)/Contents/{MacOS,Resources}
 	@swiftc -framework AppKit -framework UserNotifications \
@@ -34,6 +35,7 @@ $(BINARY): $(SOURCES) Support/Info.plist Resources/icon.png
 	    -o $(BINARY)
 	@cp Support/Info.plist $(BUILD_DIR)/Contents/
 	@cp Resources/icon.png $(BUILD_DIR)/Contents/Resources/
+	@install -m 755 Scripts/ccnotify-hook.sh $(BUILD_DIR)/Contents/Resources/
 	@echo "▶ Signing..."
 	@codesign --force --deep --sign - $(BUILD_DIR)
 	@echo "✓ Built: $(BUILD_DIR)"
@@ -60,12 +62,16 @@ uninstall:
 	@rm -rf "$(INSTALL_DIR)"
 	@echo "▶ Removing Claude Code hooks..."
 	@bash Scripts/uninstall.sh
-	@rm -f /tmp/ccnotify_*.json /tmp/ccnotify_prompt_*.ts /tmp/ccnotify-icon-*.png
+	@rm -f /tmp/ccnotify_* /tmp/ccnotify_prompt_*.ts /tmp/ccnotify-icon-*.png
 	@echo "✓ cc-notify uninstalled"
 
 # ── Test ───────────────────────────────────────────────────────────────────────
 test:
 	@bash Tests/test-notifications.sh
+
+test-scripts:
+	@bash Tests/test-hook.sh
+	@bash Tests/test-install.sh
 
 test-stop:
 	@bash Tests/test-notifications.sh stop-only

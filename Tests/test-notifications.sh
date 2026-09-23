@@ -21,7 +21,7 @@ send() {
     local event="$1"
     local payload="$2"
     local f
-    f=$(mktemp /tmp/ccnotify_test_XXXXXX.json)
+    f=$(mktemp /tmp/ccnotify_test_XXXXXXXX)
     echo "$payload" > "$f"
     open -n "$APP" --args "$event" "" "$f"
     sleep 0.5

@@ -82,6 +82,19 @@ Clicking a notification brings the originating terminal or editor to the front:
 | [Ghostty](https://ghostty.org) | `$TERM_PROGRAM=ghostty` |
 | [iTerm2](https://iterm2.com) | `$TERM_PROGRAM=iTerm.app` |
 | Apple Terminal | `$TERM_PROGRAM=Apple_Terminal` |
+| [Conductor](https://conductor.build) agents | opt-in only, see below |
+
+### Conductor
+
+[Conductor](https://conductor.build) sends its own notifications for the agents it runs (completion sound, dock badge, click opens the workspace), so cc-notify **stays silent for Conductor agents** by default, rather than notifying twice. A Conductor agent is detected by `CONDUCTOR_WORKSPACE_ID` together with `CLAUDE_AGENT_SDK_VERSION`; a `claude` you run by hand in Conductor's built-in terminal has only the first, gets no Conductor notification, and still gets cc-notify's.
+
+To get cc-notify notifications (with duration and permission details) for Conductor agents too, set `CCNOTIFY_CONDUCTOR` in `~/.claude/settings.json`; clicking one then brings Conductor to the front:
+
+```json
+{ "env": { "CCNOTIFY_CONDUCTOR": "1" } }
+```
+
+Turn off Conductor's own notifications in its settings if you do, or you will get both.
 
 ---
 
@@ -113,7 +126,7 @@ Claude Code supports [hooks](https://docs.anthropic.com/en/docs/claude-code/hook
 }
 ```
 
-Each hook pipes the event JSON to a temp file, then launches `CCNotify.app` with the event name and file path as arguments.
+Each hook runs `CCNotify.app/Contents/Resources/ccnotify-hook.sh <Event>`, which writes the event JSON to a temp file and launches `CCNotify.app` with the event name, the host (`$TERM_PROGRAM`, or `Conductor`) and the file path as arguments. Because the hook logic ships inside the app, `make install` updates it without touching `settings.json` again. Re-running `make install` replaces hooks from an earlier version instead of adding a second set.
 
 **Duration tracking** — `UserPromptSubmit` saves a timestamp. When `Stop` fires, it reads the timestamp and reports elapsed time.
 
@@ -131,6 +144,9 @@ make build
 
 # Run all test notifications
 make test
+
+# Hermetic hook and installer tests (no build, no notifications)
+make test-scripts
 
 # Clean build artifacts
 make clean
@@ -152,9 +168,12 @@ cc-notify/
 ├── Support/
 │   └── Info.plist                # App bundle metadata
 ├── Scripts/
+│   ├── ccnotify-hook.sh          # Hook entry point, bundled into the app
 │   ├── install.sh                # Hook configuration (non-destructive)
 │   └── uninstall.sh              # Hook removal
 ├── Tests/
+│   ├── test-hook.sh              # Hook tests (fake `open`)
+│   ├── test-install.sh           # Installer tests (throwaway $HOME)
 │   └── test-notifications.sh    # Manual notification tests
 └── Makefile
 ```

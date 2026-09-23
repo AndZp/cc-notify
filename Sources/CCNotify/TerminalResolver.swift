@@ -1,10 +1,12 @@
 import Foundation
 
-/// Maps TERM_PROGRAM environment variable values to macOS bundle identifiers.
+/// Maps the host passed by the hook to a macOS bundle identifier — normally a TERM_PROGRAM
+/// value, or "Conductor" for a Conductor agent that opted in with CCNOTIFY_CONDUCTOR.
 /// Used to implement click-to-open: when the user taps a notification, the originating
 /// terminal or editor is brought to the foreground.
 func resolveTerminalBundle(_ termProgram: String) -> String {
     let map: [String: String] = [
+        "Conductor":       "com.conductor.app",
         "WarpTerminal":    "dev.warp.Warp-Stable",
         "vscode":          "com.microsoft.VSCode",
         "cursor":          "com.todesktop.230313mzl4w4u92",

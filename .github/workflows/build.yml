@@ -26,3 +26,9 @@ jobs:
         run: |
           codesign --verify --deep .build/CCNotify.app
           echo "Code signature valid"
+
+      - name: Verify hook script is bundled
+        run: test -x .build/CCNotify.app/Contents/Resources/ccnotify-hook.sh
+
+      - name: Hook and installer tests
+        run: make test-scripts
